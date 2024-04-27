@@ -1,0 +1,53 @@
+### Zomboid Source ###
+disassembly/
+build/
+lib/
+
+### My test stuff ###
+*.wav
+krak2.exe
+*.dll
+studio/
+java/src/test/
+
+### Build ###
+out/
+natives/x64/
+
+### IntelliJ IDEA ###
+*.iml
+.idea/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### VS ###
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+
+### Mac OS ###
+.DS_Store
