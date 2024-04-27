@@ -8,7 +8,7 @@ lib/
 krak2.exe
 *.dll
 studio/
-java/src/test/
+java/test/
 
 ### Build ###
 out/
