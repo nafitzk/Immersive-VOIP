@@ -1,4 +1,4 @@
-package immersiveaudio;
+package immersivevoip;
 
 import se.krka.kahlua.integration.annotations.LuaMethod;
 

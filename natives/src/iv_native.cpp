@@ -6,9 +6,6 @@
 // Macros
 #define CAST_FMOD_PTR(var_name, var_type, addr) var_type var_name = reinterpret_cast<var_type>(addr)
 
-// some icky globals, but this will work for now
-//HMODULE iv_zomboid_dll; // TODO maybe not even needed now that we have the fmod system ????
-
 // fmod system, should be all that we need
 FMOD::System* pz_fmod_system;
 
@@ -16,37 +13,30 @@ FMOD::System* pz_fmod_system;
 // function definitions
 
 // Init IV fmod native
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_Init_1IV(JNIEnv* env, jclass clazz, jlong voip_channel_group_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_Init_1IV(JNIEnv* env, jclass clazz, jlong voip_channel_group_addr) {
 	FMOD::ChannelGroup* voip_channel_group = reinterpret_cast<FMOD::ChannelGroup*>(voip_channel_group_addr);
 
 	// grab the fmod system from the zomboid voip channel group
 	FMOD_RESULT result = voip_channel_group->getSystemObject(&pz_fmod_system);
 
-	// make a test channel :^)
-	//FMOD::Sound *sound;
-	//pz_fmod_system->createSound("test_blank.wav", FMOD_LOOP_NORMAL, nullptr, &sound);
-
-	//FMOD::Channel* channel;
-	//pz_fmod_system->playSound(sound, voip_channel_group, false, &channel);
-
 	return result;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1AddDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jint index, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1Channel_1AddDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jint index, jlong dsp_addr) {
 	CAST_FMOD_PTR(channel, FMOD::Channel*, channel_addr);
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return channel->addDSP(index, dsp);;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1RemoveDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1Channel_1RemoveDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jlong dsp_addr) {
 	CAST_FMOD_PTR(channel, FMOD::Channel*, channel_addr);
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return channel->removeDSP(dsp);
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1GetNumDSPs(JNIEnv* env, jclass clazz, jlong channel_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1Channel_1GetNumDSPs(JNIEnv* env, jclass clazz, jlong channel_addr) {
 	CAST_FMOD_PTR(channel, FMOD::Channel*, channel_addr);
 
 	int num;
@@ -54,7 +44,7 @@ JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1GetNumDS
 	return num;
 }
 
-JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1GetDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jint index) {
+JNIEXPORT jlong JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1Channel_1GetDSP(JNIEnv* env, jclass clazz, jlong channel_addr, jint index) {
 	CAST_FMOD_PTR(channel, FMOD::Channel*, channel_addr);
 
 	FMOD::DSP* dsp;
@@ -67,21 +57,21 @@ JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1Channel_1GetDSP(
 	return 0L;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1AddDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jint index, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1ChannelGroup_1AddDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jint index, jlong dsp_addr) {
 	CAST_FMOD_PTR(channelgroup, FMOD::ChannelGroup*, channelgroup_addr);
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return channelgroup->addDSP(index, dsp);
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1RemoveDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1ChannelGroup_1RemoveDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jlong dsp_addr) {
 	CAST_FMOD_PTR(channelgroup, FMOD::ChannelGroup*, channelgroup_addr);
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return channelgroup->removeDSP(dsp);
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1GetNumDSPs(JNIEnv* env, jclass clazz, jlong channelgroup_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1ChannelGroup_1GetNumDSPs(JNIEnv* env, jclass clazz, jlong channelgroup_addr) {
 	CAST_FMOD_PTR(channelgroup, FMOD::ChannelGroup*, channelgroup_addr);
 
 	int num;
@@ -89,7 +79,7 @@ JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1Get
 	return num;
 }
 
-JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1GetDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jint index) {
+JNIEXPORT jlong JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1ChannelGroup_1GetDSP(JNIEnv* env, jclass clazz, jlong channelgroup_addr, jint index) {
 	CAST_FMOD_PTR(channelgroup, FMOD::ChannelGroup*, channelgroup_addr);
 
 	FMOD::DSP* dsp;
@@ -102,7 +92,7 @@ JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1ChannelGroup_1Ge
 	return 0L;
 }
 
-JNIEXPORT jboolean JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetActive(JNIEnv* env, jclass clazz, jlong dsp_addr) {
+JNIEXPORT jboolean JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetActive(JNIEnv* env, jclass clazz, jlong dsp_addr) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	bool active;
@@ -110,7 +100,7 @@ JNIEXPORT jboolean JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetActiv
 	return active;
 }
 
-JNIEXPORT jboolean JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetBypass(JNIEnv* env, jclass clazz, jlong dsp_addr) {
+JNIEXPORT jboolean JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetBypass(JNIEnv* env, jclass clazz, jlong dsp_addr) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	bool bypass;
@@ -118,70 +108,70 @@ JNIEXPORT jboolean JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetBypas
 	return bypass;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1SetActive(JNIEnv* env, jclass clazz, jlong dsp_addr, jboolean active) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1SetActive(JNIEnv* env, jclass clazz, jlong dsp_addr, jboolean active) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return dsp->setActive(active);
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1SetBypass(JNIEnv* env, jclass clazz, jlong dsp_addr, jboolean bypass) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1SetBypass(JNIEnv* env, jclass clazz, jlong dsp_addr, jboolean bypass) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return dsp->setBypass(bypass);
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1SetParameterFloat(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jfloat value) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1SetParameterFloat(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jfloat value) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	FMOD_RESULT result = dsp->setParameterFloat(index, value);
 	return result;
 }
 
-JNIEXPORT jfloat JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetParameterFloat(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
+JNIEXPORT jfloat JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetParameterFloat(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	float value;
-	FMOD_RESULT result = dsp->getParameterFloat(index, &value, nullptr, 0); // FIXME this is scary
+	FMOD_RESULT result = dsp->getParameterFloat(index, &value, nullptr, 0);
 	return value;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1SetParameterInt(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jint value) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1SetParameterInt(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jint value) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	FMOD_RESULT result = dsp->setParameterInt(index, value);
 	return result;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetParameterInt(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetParameterInt(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	int value;
-	FMOD_RESULT result = dsp->getParameterInt(index, &value, nullptr, 0); // FIXME this is scary
+	FMOD_RESULT result = dsp->getParameterInt(index, &value, nullptr, 0);
 	return value;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1SetParameterBool(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jboolean value) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1SetParameterBool(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index, jboolean value) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	FMOD_RESULT result = dsp->setParameterBool(index, value);
 	return result;
 }	
 
-JNIEXPORT jboolean JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetParameterBool(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
+JNIEXPORT jboolean JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetParameterBool(JNIEnv* env, jclass clazz, jlong dsp_addr, jint index) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	bool value;
-	FMOD_RESULT result = dsp->getParameterBool(index, &value, nullptr, 0); // FIXME this is scary
+	FMOD_RESULT result = dsp->getParameterBool(index, &value, nullptr, 0);
 	return value;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1Release(JNIEnv* env, jclass clazz, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1Release(JNIEnv* env, jclass clazz, jlong dsp_addr) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	return dsp->release();
 }
 
-JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1System_1CreateDSPByType(JNIEnv* env, jclass clazz, jint dsp_type) {
+JNIEXPORT jlong JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1System_1CreateDSPByType(JNIEnv* env, jclass clazz, jint dsp_type) {
 	FMOD::DSP* dsp;
 	FMOD_DSP_TYPE type = static_cast<FMOD_DSP_TYPE>(dsp_type);
 
@@ -196,7 +186,7 @@ JNIEXPORT jlong JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1System_1CreateDS
 	return 0L;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetNumParameters(JNIEnv* env, jclass clazz, jlong dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1GetNumParameters(JNIEnv* env, jclass clazz, jlong dsp_addr) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 
 	int num;
@@ -205,7 +195,7 @@ JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1GetNumParame
 	return num;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1AddInput(JNIEnv* env, jclass clazz, jlong dsp_addr, jlong input_dsp_addr) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1DSP_1AddInput(JNIEnv* env, jclass clazz, jlong dsp_addr, jlong input_dsp_addr) {
 	CAST_FMOD_PTR(dsp, FMOD::DSP*, dsp_addr);
 	CAST_FMOD_PTR(input_dsp, FMOD::DSP*, input_dsp_addr);
 
@@ -214,7 +204,7 @@ JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1DSP_1AddInput(JNI
 	return result;
 }
 
-JNIEXPORT jint JNICALL Java_immersiveaudio_fmod_IVNative_FMOD_1System_1SetReverbProperties(JNIEnv* env, jclass clazz, jint instance, jint preset) {
+JNIEXPORT jint JNICALL Java_immersivevoip_fmod_IVNative_FMOD_1System_1SetReverbProperties(JNIEnv* env, jclass clazz, jint instance, jint preset) {
 	FMOD_REVERB_PROPERTIES properties;
 
 	switch (preset) { // icky hard code

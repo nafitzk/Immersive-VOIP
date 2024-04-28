@@ -1,4 +1,4 @@
-package immersiveaudio;
+package immersivevoip;
 
 // No post-processing here.
 public class EmptyVoiceFilter extends VoiceFilter {

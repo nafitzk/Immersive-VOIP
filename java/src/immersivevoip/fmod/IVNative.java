@@ -1,17 +1,39 @@
-package immersiveaudio.fmod;
+package immersivevoip.fmod;
 
-import zombie.debug.DebugLog;
+import immersivevoip.IV;
 
 // native functions and library loading
+// this is needed because zomboid's fmod integration does not implement everything needed
 public class IVNative {
 
+    public static boolean IVNativeLoaded = false;
+
     // load library on init
-    static{
-        System.loadLibrary("CppNatives");
+    public static boolean init(long voipChannelGroup){
+        try{
+            System.loadLibrary("ivnative");
+        } catch (UnsatisfiedLinkError | SecurityException | NullPointerException e) {
+            IV.debug("[FMOD]: ivnative library load failed: "+e);
+            return false;
+        }
+        IVNativeLoaded = true;
+        IV.debug("[FMOD]: ivnative library loaded");
+
+        // init native
+        int result = Init_IV(voipChannelGroup);
+        if(result != 0 ){
+            IV.debug("[FMOD]: ivnative init error: "+result);
+            return false;
+        }
+        IV.debug("[FMOD]: ivnative init success");
+
+        return true;
     }
 
+    // set up native
     public static native int Init_IV(long voipChannelGroup);
 
+    // misc fmod functions that aren't implemented in zomboid
     public static native int FMOD_Channel_AddDSP(long channel, int index, long dsp);
     public static native int FMOD_Channel_RemoveDSP(long channel, long dsp);
     public static native int FMOD_Channel_GetNumDSPs(long channel);

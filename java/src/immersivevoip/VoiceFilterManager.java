@@ -1,8 +1,7 @@
-package immersiveaudio;
+package immersivevoip;
 
 import zombie.characters.IsoPlayer;
 import zombie.core.raknet.VoiceManagerData;
-import zombie.debug.DebugLog;
 import zombie.network.GameClient;
 
 import java.util.HashMap;
@@ -19,20 +18,20 @@ public class VoiceFilterManager {
 
     // sets up the dsp filters for immersive voip
     public void initUserVoiceFilters(short userId, VoiceManagerData userData){
-        DebugLog.Voice.debugln("#@# New user IV init: "+userId);
+        IV.debug("New user IV init: "+userId);
 
         IsoPlayer user = GameClient.instance.getPlayerByOnlineID(userId);
         if(user == null){
-            DebugLog.Voice.debugln("#@# User "+userId+" is null!");
+            IV.debug("User "+userId+" is null!");
             return;
         }
 
-        DebugLog.Voice.debugln("#@# Init user voice state: "+user.getUsername());
+        IV.debug("Init user voice state: "+user.getUsername());
         VoiceFilterState vfs = new VoiceFilterState(user, userData.userplaychannel);
-        DebugLog.Voice.debugln("#@# Done");
+        IV.debug("Done");
 
         dataMap.put(userData, vfs);
-        DebugLog.Voice.debugln("#@# User init complete!");
+        IV.debug("User init complete!");
     }
 
     // update the DSPs depending on world state
@@ -40,7 +39,7 @@ public class VoiceFilterManager {
     public void updateUserVoiceFilters(VoiceManagerData.VoiceDataSource source, VoiceManagerData userData, VoiceManagerData.RadioData radioData){
         VoiceFilterState vfs = dataMap.get(userData);
         if(vfs == null){
-            DebugLog.Voice.debugln("#@# No VoiceFilterData found for user channel "+userData.userplaychannel);
+            IV.debug("No VoiceFilterData found for user channel "+userData.userplaychannel);
             return;
         }
 
@@ -50,10 +49,10 @@ public class VoiceFilterManager {
     public void userVoiceTimeout(VoiceManagerData userData){
         VoiceFilterState vfd = dataMap.get(userData);
         if(vfd == null){
-            //DebugLog.Voice.debugln("#@# Cannot reset null user "+userData.userplaychannel);
+            IV.debug("Cannot reset null user "+userData.userplaychannel);
             return;
         }
-        //DebugLog.Voice.debugln("#@# Resetting user "+vfd.user.getUsername());
+        IV.debug("Resetting user "+vfd.user.getUsername());
 
         // reset the user to the unknown voice state
         vfd.update(VoiceManagerData.VoiceDataSource.Unknown, null);

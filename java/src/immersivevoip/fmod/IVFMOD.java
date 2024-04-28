@@ -1,15 +1,9 @@
-package immersiveaudio.fmod;
+package immersivevoip.fmod;
 
-// fmod state manager and defs
+// fmod enums and defs
 public class IVFMOD {
     public IVFMOD(){
 
-    }
-
-    public static void init(long voipChannelGroup){
-        //DebugLog.Voice.debugln("#@# IVFMOD Init");
-        IVNative.Init_IV(voipChannelGroup);
-        //DebugLog.Voice.debugln("#@# Success");
     }
 
     public enum FMOD_DSP_TYPE {

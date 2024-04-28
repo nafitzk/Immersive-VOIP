@@ -1,6 +1,4 @@
-package immersiveaudio;
-
-import zombie.debug.DebugLog;
+package immersivevoip;
 
 public abstract class VoiceFilter {
     protected String name;
@@ -19,7 +17,7 @@ public abstract class VoiceFilter {
 
     public void setActive(boolean active){
         this.active = active;
-        DebugLog.Voice.debugln("#@# "+name+": Set Active: " + active);
+        IV.debug("[FILTER]: "+name+": Set Active: " + active);
         onSetActive(active);
     }
 

@@ -1,8 +1,7 @@
-package immersiveaudio;
+package immersivevoip;
 
 import zombie.characters.IsoPlayer;
 import zombie.core.raknet.VoiceManagerData;
-import zombie.debug.DebugLog;
 
 // a very simple state machine for managing the current filter of a user
 public class VoiceFilterState {
@@ -34,6 +33,9 @@ public class VoiceFilterState {
 
         // turn off
         radioFilter.disable();
+
+        // initialize state
+        current = emptyFilter;
     }
 
     public void dispose(){
@@ -41,8 +43,8 @@ public class VoiceFilterState {
     }
 
     public void update(VoiceManagerData.VoiceDataSource source, VoiceManagerData.RadioData radioData){
-        DebugLog.Voice.debugln("#@# Updating user : "+user.getUsername());
-        DebugLog.Voice.debugln("#@# Source : "+source.toString());
+        //IV.log("Updating user : "+user.getUsername());
+        //IV.log("Source : "+source.toString());
 
         boolean sourceChanged = this.source == source;
 
@@ -51,7 +53,7 @@ public class VoiceFilterState {
 
         // if our source has been updated, then we update the filter state
         if(sourceChanged){
-            DebugLog.Voice.debugln("#@# Voice Filter State: source changed: "+this.source.toString()+" -> "+source.toString());
+            IV.debug("[State]: User "+user.getUsername()+" source changed: "+this.source.toString()+" -> "+source.toString());
 
             switch (source){
                 case Unknown, Voice, Cheat -> { // not sure what to do with these for now, so we will apply the empty filter aka no filter
@@ -67,9 +69,7 @@ public class VoiceFilterState {
     }
 
     private void setCurrentFilter(VoiceFilter filter){
-        if(current != null){
-            current.disable(); // disable current filter
-        }
+        current.disable(); // disable current filter
         current = filter;
         current.enable();
     }

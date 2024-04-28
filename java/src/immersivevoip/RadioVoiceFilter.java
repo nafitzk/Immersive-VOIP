@@ -1,15 +1,14 @@
-package immersiveaudio;
+package immersivevoip;
 
-import immersiveaudio.fmod.IVNative;
-import zombie.core.raknet.VoiceManagerData;
+import immersivevoip.fmod.IVNative;
 
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_COMPRESSOR.*;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_DISTORTION.FMOD_DSP_DISTORTION_LEVEL;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_FADER.FMOD_DSP_FADER_GAIN;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_OSCILLATOR.FMOD_DSP_OSCILLATOR_TYPE;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_THREE_EQ.*;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_THREE_EQ.FMOD_DSP_THREE_EQ_CROSSOVERSLOPE;
-import static immersiveaudio.fmod.IVFMOD.FMOD_DSP_TYPE.*;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_COMPRESSOR.*;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_DISTORTION.FMOD_DSP_DISTORTION_LEVEL;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_FADER.FMOD_DSP_FADER_GAIN;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_OSCILLATOR.FMOD_DSP_OSCILLATOR_TYPE;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_THREE_EQ.*;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_THREE_EQ.FMOD_DSP_THREE_EQ_CROSSOVERSLOPE;
+import static immersivevoip.fmod.IVFMOD.FMOD_DSP_TYPE.*;
 
 public class RadioVoiceFilter extends VoiceFilter {
 
@@ -36,6 +35,8 @@ public class RadioVoiceFilter extends VoiceFilter {
 
     // voice filter parameters
     private float quality = 1f;
+    private float activeDuration = 0f;
+    private static final float FILTER_STARTUP_TIME = 40f; // determines the amount of time at startup where the radio quality is initially distorted and noisy
 
     public RadioVoiceFilter(long channel, VoiceFilterState state){
         super("RadioFilter", channel, state);
@@ -56,9 +57,9 @@ public class RadioVoiceFilter extends VoiceFilter {
 
         // compressor
         voiceCompressorDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_COMPRESSOR.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), 2.5f);
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), 0.0f);
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_ATTACK.ordinal(), 1f);
+        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), RADIO_COMPRESSOR_RATIO);
+        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), RADIO_COMPRESSOR_THRESHOLD);
+        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_ATTACK.ordinal(), RADIO_COMPRESSOR_ATTACK);
 
         // noise
         noiseDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_OSCILLATOR.ordinal());
@@ -66,7 +67,7 @@ public class RadioVoiceFilter extends VoiceFilter {
 
         // noise compressor
         noiseFaderDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_FADER.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(noiseFaderDsp, FMOD_DSP_FADER_GAIN.ordinal(), -20f);
+        IVNative.FMOD_DSP_SetParameterFloat(noiseFaderDsp, FMOD_DSP_FADER_GAIN.ordinal(), RADIO_NOISE_GAIN);
     }
 
     @Override
@@ -77,6 +78,11 @@ public class RadioVoiceFilter extends VoiceFilter {
         IVNative.FMOD_DSP_SetBypass(distortionDsp, !active);
         IVNative.FMOD_DSP_SetBypass(voiceCompressorDsp, !active);
         IVNative.FMOD_DSP_SetBypass(bandpassFilterDsp, !active);
+
+        // reset radio startup time
+        if(active){
+            activeDuration = 0f;
+        }
     }
 
     @Override
@@ -99,7 +105,22 @@ public class RadioVoiceFilter extends VoiceFilter {
 
     @Override
     public void updateFilter() {
+        float newQuality = quality;
+
         // TODO update radio quality based on distance
+
+        // update startup quality
+        activeDuration+=1f;
+        float startupDelta = activeDuration / FILTER_STARTUP_TIME;
+
+        if(startupDelta < 1f){
+            newQuality = 0.5f;
+        }
+
+        // only update quality when needed
+        if(newQuality != quality){
+            setQuality(newQuality);
+        }
     }
 
     public void setQuality(float quality){
