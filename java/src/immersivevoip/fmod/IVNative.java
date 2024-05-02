@@ -3,31 +3,32 @@ package immersivevoip.fmod;
 import immersivevoip.IV;
 
 // native functions and library loading
-// this is needed because zomboid's fmod integration does not implement everything needed
+// this is needed because zomboid's fmod integration does not implement everything
 public class IVNative {
 
-    public static boolean IVNativeLoaded = false;
-
-    // load library on init
-    public static boolean init(long voipChannelGroup){
-        try{
-            System.loadLibrary("ivnative");
-        } catch (UnsatisfiedLinkError | SecurityException | NullPointerException e) {
-            IV.debug("[FMOD]: ivnative library load failed: "+e);
-            return false;
+    public static void init(long voipChannelGroup){
+        // load native library
+        if(!IV.nativeLoaded) {
+            try {
+                System.loadLibrary("ivnative");
+            } catch (UnsatisfiedLinkError | SecurityException | NullPointerException e) {
+                IV.log("[FMOD]: ivnative library load failed: " + e);
+                return;
+            }
+            IV.nativeLoaded = true;
+            IV.debug("[FMOD]: ivnative library loaded");
         }
-        IVNativeLoaded = true;
-        IV.debug("[FMOD]: ivnative library loaded");
 
         // init native
-        int result = Init_IV(voipChannelGroup);
-        if(result != 0 ){
-            IV.debug("[FMOD]: ivnative init error: "+result);
-            return false;
+        if(!IV.nativeActive) {
+            int result = Init_IV(voipChannelGroup);
+            if (result != 0) {
+                IV.log("[FMOD]: ivnative init returned error: " + result);
+                return;
+            }
+            IV.nativeActive = true;
+            IV.debug("[FMOD]: ivnative init success");
         }
-        IV.debug("[FMOD]: ivnative init success");
-
-        return true;
     }
 
     // set up native

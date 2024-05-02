@@ -1,5 +1,6 @@
 package immersivevoip;
 
+import zombie.Lua.LuaManager;
 import zombie.characters.IsoPlayer;
 import zombie.core.raknet.VoiceManagerData;
 import zombie.network.GameClient;
@@ -16,8 +17,16 @@ public class VoiceFilterManager {
         dataMap = new HashMap<>();
     }
 
-    // sets up the dsp filters for immersive voip
+    public static void exposeLua(){
+        LuaManager.exposer.setExposed(VoiceFilterManager.class);
+    }
+
+    // sets up voice filter state for a new user
     public void initUserVoiceFilters(short userId, VoiceManagerData userData){
+        if(!IV.modEnabled){
+            return;
+        }
+
         IV.debug("New user IV init: "+userId);
 
         IsoPlayer user = GameClient.instance.getPlayerByOnlineID(userId);
@@ -34,8 +43,7 @@ public class VoiceFilterManager {
         IV.debug("User init complete!");
     }
 
-    // update the DSPs depending on world state
-    // compare listener and source state and activate / deactivate filters
+    // update voice filter state for a particular user
     public void updateUserVoiceFilters(VoiceManagerData.VoiceDataSource source, VoiceManagerData userData, VoiceManagerData.RadioData radioData){
         VoiceFilterState vfs = dataMap.get(userData);
         if(vfs == null){
@@ -46,19 +54,20 @@ public class VoiceFilterManager {
         vfs.update(source, radioData);
     }
 
+    // reset the voice filter state of a user
     public void userVoiceTimeout(VoiceManagerData userData){
-        VoiceFilterState vfd = dataMap.get(userData);
-        if(vfd == null){
+        VoiceFilterState vfs = dataMap.get(userData);
+        if(vfs == null){
             IV.debug("Cannot reset null user "+userData.userplaychannel);
             return;
         }
-        IV.debug("Resetting user "+vfd.user.getUsername());
+        IV.debug("Resetting user "+vfs.user.getUsername());
 
         // reset the user to the unknown voice state
-        vfd.update(VoiceManagerData.VoiceDataSource.Unknown, null);
+        vfs.update(VoiceManagerData.VoiceDataSource.Unknown, null);
     }
 
-    // tears down the dsp filters for immersive voip
+    // tears down the dsp filters for a user
     public void releaseUserVoiceFilters(VoiceManagerData userData){
         VoiceFilterState vfs = dataMap.remove(userData);
         if(vfs == null){

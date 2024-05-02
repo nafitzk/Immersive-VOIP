@@ -4,11 +4,12 @@ build/
 lib/
 
 ### My test stuff ###
-*.wav
 krak2.exe
 *.dll
 studio/
 java/test/
+java/zomboid/
+test/
 
 ### Build ###
 out/
