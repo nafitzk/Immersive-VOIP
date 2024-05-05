@@ -1,0 +1,79 @@
+[h1][b][u]***IMPORTANT***[/u][/b]
+THIS MOD REQUIRES EXTRA STEPS TO WORK PROPERLY
+PLEASE READ THE [b]Install[/b] SECTION
+[/h1]
+
+[h3]Note: Immersive VOIP is a pretty complex mod and it is in an early state. Some bugs and oddities should be expected. Please report any issues you may encounter. [/h3]
+
+[hr][/hr]
+What is Immersive VOIP?
+
+[h2]Immersive VOIP enhances the in-game voice chat by adding real time effects and filters[/h2]
+
+Have you ever used in-game voice chat over the radio or walkie-talkie and wondered why your friend's voice sounds normal and not... well... radio-y? If you've ever used a walkie-talkie before, you know what I mean. A voice heard over the radio should sound scratchy and hollow. This mod adds effects to voice chat that does exactly this!
+
+[h2]Current Features[/h2]
+[list]
+[*]Adds a radio voice filter effect for players talking over a walkie talkie or radio.
+
+[*]Adds sound effects when using walkie-talkies for extra immersion.
+[/list]
+
+
+[h1][b]Install[/b][/h1]
+[olist]
+[*]Subscribe to this workshop item. Wait a minute or so for it to download.
+
+[*]Download the latest release from the [url=https://github.com/nafitzk/Immersive-VOIP/]Immersive VOIP Github page[/url]
+
+[*]Copy the contents of release.zip into your Project Zomboid install folder.
+If this is your first time installing, it should ask to replace [b]exactly one[/b] file. Click yes.
+[/olist]
+And presto! Immersive VOIP is installed and ready to use.
+If something is incorrect, you will see a window in-game indicating that you need to reinstall.
+To uninstall, simply go to your Project Zomboid folder and delete the files you added.
+
+[hr][/hr]
+
+[h2]Future Features and Goals[/h2]
+[list]
+[*]Voice filters and effects for proximity (non-radio) voice chat. Reverb in large rooms, muffling through walls and floors, and so on.
+
+[*]Realistic world sound and radio interaction. Nearby sound effects, like gunshots and windows breaking, should be heard over the radio.
+
+[*]Client options and configuration
+
+[*]Further Lua integration. Events and hooks for further moddability.
+[/list]
+Have more ideas? Let me know!
+
+
+[h1]FAQ[/h1]
+Q: [b][i]Can I add this mod to an existing save?[/i][/b]
+A: Yes, the mod does not affect saves or characters in any way. It is safe to add and remove from saves and servers at any time.
+
+Q: [b][i]Why do I have to download something externally to get this mod to work?[/i][/b]
+A: Good question. Project Zomboid has a good modding system that makes changing many things very easy, but the changes required to make a mod like Immersive VOIP simply aren't possible with Zomboid's existing mod system.
+Specifically, I had to make a [i]native library[/i] in order to interface with Zomboid's underlying sound system and add audio effects. Unfortunately, Zomboid does not allow you to upload such files to Steam, so I am forced to make it available externally. For more information on how this mod works, check out the Github page or ask me a question!
+
+Q: [b][i]That's cool and all, but is this legit?[/i][/b]
+A: I understand your concern. Everything here (and on Github) is made entirely from scratch by me and I assure you that it is legit. The only reason that an external download is required is because this mod changes some underlying systems within Project Zomboid that the steam workshop does not allow me to upload.
+This is my main Steam account so I would not risk getting it banned in some pathetic attempt to scam a few Zomboid players. Check out the source code on Github and verify for yourself that it is purely a mod to make Zomboid even cooler than it already is!
+
+Q: [b][i]Does this mod need to be installed on the server?[/i][/b]
+A: It is recommended. While the mod technically only affects client-side logic, adding it to a server list is an easy way to install it for anyone joining.
+
+Q: [b][i]Will this mod make my server lag?[/i][/b]
+A: No, all audio processing takes place client-side. No extra server workload is added.
+
+Q: [b][i]Does this mod work in solo play or servers that don't allow VOIP?[/i][/b]
+A: No, when voice chat is disabled (aka solo play or voip-disabled servers), this mod is intentionally disabled.
+
+Q: [b][i]Does this mod work on Linux or MacOS?[/i][/b]
+A: To be honest, I do not know. I have not tested this. If you feel brave, go ahead and try it and let me know the results!
+
+[h1]Links[/h1]
+https://github.com/nafitzk/Immersive-VOIP
+
+Workshop ID: 3233916266
+Mod ID: ImmersiveVOIP

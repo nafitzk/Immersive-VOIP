@@ -6,6 +6,8 @@ import zombie.inventory.InventoryItem;
 import zombie.inventory.types.Radio;
 import zombie.radio.devices.DeviceData;
 
+import java.util.Objects;
+
 // general purpose event bus
 public class IVEvent {
 
@@ -50,13 +52,21 @@ public class IVEvent {
         }
     }
 
-    public static void BeginReceive(String username, int source){
-        //LuaEventManager.triggerEvent("ivOnReceiveVoiceBegin", username, source);
+    public static void BeginReceive(String username, VoiceManagerData.RadioData radio_data, VoiceManagerData.VoiceDataSource source){
+        IV.debug("Being Receive from "+username+": "+source);
+
+        // not sure what needs to be done to receive
     }
 
-    public static void EndReceive(String username){
-        //LuaEventManager.triggerEvent("ivOnReceiveVoiceEnd", username);
+    public static void EndReceive(String username, VoiceManagerData.RadioData radio_data, VoiceManagerData.VoiceDataSource source){
+        IV.debug("Being Receive from "+username+": "+source);
+
+        // if receive has ended over the radio, play a roger beep
+        if (source == VoiceManagerData.VoiceDataSource.Radio) {
+            if (radio_data.getDeviceData() != null) {
+                long id = IsoPlayer.getInstance().getEmitter().playSound("roger_beep");
+                IsoPlayer.getInstance().getEmitter().setVolume(id, radio_data.getDeviceData().getDeviceVolume());
+            }
+        }
     }
-
-
 }

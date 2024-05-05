@@ -30,7 +30,6 @@ public class IVLua {
                 IV.debug("[Lua]: Handshake: "+result);
                 if(result){
                     IV.modEnabled = true;
-                    IV.checkReady();
                 }
                 else {
                     IV.log("[Lua]: Handshake returned false");
@@ -42,6 +41,5 @@ public class IVLua {
 
     public static void updateConfig(){
         javaConfig.rawset("version", IV.VERSION);
-        javaConfig.rawset("status", IV.nativeActive && IV.nativeLoaded);
     }
 }

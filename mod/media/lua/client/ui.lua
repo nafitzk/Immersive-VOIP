@@ -56,7 +56,7 @@ function IvUpdateWindow:render()
     local left = self.config.marginLeft
     local y = self.textY
 
-    self:drawText("Welcome to Immersive VOIP! :) :) :)", left, y, 1, 1, 1, 1)
+    self:drawText("Immersive VOIP has not been installed correctly.\nPlease follow the Workshop page for installation instructions", left, y, 1, 1, 1, 1)
 end
 
 local ui = {

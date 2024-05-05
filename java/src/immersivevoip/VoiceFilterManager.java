@@ -17,21 +17,17 @@ public class VoiceFilterManager {
         dataMap = new HashMap<>();
     }
 
-    public static void exposeLua(){
-        LuaManager.exposer.setExposed(VoiceFilterManager.class);
-    }
-
     // sets up voice filter state for a new user
     public void initUserVoiceFilters(short userId, VoiceManagerData userData){
         if(!IV.modEnabled){
             return;
         }
 
-        IV.debug("New user IV init: "+userId);
+        IV.debug("New user init: "+userId);
 
         IsoPlayer user = GameClient.instance.getPlayerByOnlineID(userId);
         if(user == null){
-            IV.debug("User "+userId+" is null!");
+            IV.log("User "+userId+" is null!");
             return;
         }
 
@@ -47,7 +43,7 @@ public class VoiceFilterManager {
     public void updateUserVoiceFilters(VoiceManagerData.VoiceDataSource source, VoiceManagerData userData, VoiceManagerData.RadioData radioData){
         VoiceFilterState vfs = dataMap.get(userData);
         if(vfs == null){
-            IV.debug("No VoiceFilterData found for user channel "+userData.userplaychannel);
+            //IV.debug("No VoiceFilterData found for user channel "+userData.userplaychannel); // too much spam!
             return;
         }
 
@@ -58,7 +54,7 @@ public class VoiceFilterManager {
     public void userVoiceTimeout(VoiceManagerData userData){
         VoiceFilterState vfs = dataMap.get(userData);
         if(vfs == null){
-            IV.debug("Cannot reset null user "+userData.userplaychannel);
+            //IV.debug("Cannot reset null user "+userData.userplaychannel); // too much spam!
             return;
         }
         IV.debug("Resetting user "+vfs.user.getUsername());

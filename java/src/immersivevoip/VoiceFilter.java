@@ -25,10 +25,12 @@ public abstract class VoiceFilter {
 
     public final void enable(){
         setActive(true);
+        IVEvent.BeginReceive(state.user.getUsername(), state.radioData, state.source);
     }
 
     public final void disable(){
         setActive(false);
+        IVEvent.EndReceive(state.user.getUsername(), state.radioData, state.source);
     }
 
     // adds DSPs to the channel
@@ -44,5 +46,11 @@ public abstract class VoiceFilter {
     // map x in [0,1] to [a,b]
     protected static float map(float a, float b, float x){
         return a + (b - a) * (x);
+    }
+
+    //Y = (X-A)/(B-A) * (D-C) + C
+    // map x in [a0,b0] to [a1,b1]
+    protected static float map(float a0, float b0, float a1, float b1, float x){
+        return (x - a0) / (b0 - a0) * (b1 - a1) + a1;
     }
 }

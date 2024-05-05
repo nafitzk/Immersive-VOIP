@@ -14,9 +14,10 @@ public class VoiceFilterState {
     public VoiceManagerData.VoiceDataSource source = VoiceManagerData.VoiceDataSource.Unknown;
     public VoiceManagerData.RadioData radioData;
 
-    // voice filter states
+    // voice filter state
     private VoiceFilter current;
 
+    // cached filters
     private final EmptyVoiceFilter emptyFilter;
     private final RadioVoiceFilter radioFilter;
 

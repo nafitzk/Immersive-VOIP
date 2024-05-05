@@ -2,13 +2,12 @@ local ivui = require("ui")
 
 -- Global config for setup
 immersiveVoipConfigLua = {
-    version = "0.1a"
+    version = "0.1c" -- this must match version in IV.java
 }
 
 -- A table like this should is added and updated from java, if the java side of the mod is correctly installed
 -- immersiveVoipConfigJava {
 --  version,
---  status
 -- }
 
 local player
@@ -19,7 +18,6 @@ local function onGameStart()
 
     -- init player for later
     player = getSpecificPlayer(0)
-    --print(player:getUsername())
 
     local status = false
 
@@ -32,13 +30,7 @@ local function onGameStart()
     -- if we do have a version and it is not the same as the Lua version, the java implementation must be
     -- updated manually
     elseif immersiveVoipConfigJava.version ~= immersiveVoipConfigLua.version then
-        print("Version mismatch! Reinstall the java side")
-        ivui.IvUpdateWindow:getInstance():forceVisible();
-
-    -- if mod is installed and version strings check out, we do a final check to see if the java side of the mod
-    -- configured properly. If not, display a window that something is wrong
-    elseif not immersiveVoipConfigJava.status then
-        print("Java side of the mod failed to init. Contact the creator and tell him he stinks :^)")
+        print("Version mismatch! The mod has been updated and the java needs a reinstall")
         ivui.IvUpdateWindow:getInstance():forceVisible();
 
     -- if we are here, then it looks like we are good to go

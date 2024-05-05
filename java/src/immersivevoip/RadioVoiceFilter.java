@@ -1,6 +1,9 @@
 package immersivevoip;
 
-import immersivevoip.fmod.IVNative;
+import fmod.fmod.FMODManager;
+import fmod.javafmodJNI;
+import org.joml.Math;
+import org.joml.Vector2f;
 
 import static immersivevoip.fmod.IVFMOD.FMOD_DSP_COMPRESSOR.*;
 import static immersivevoip.fmod.IVFMOD.FMOD_DSP_DISTORTION.FMOD_DSP_DISTORTION_LEVEL;
@@ -14,88 +17,91 @@ public class RadioVoiceFilter extends VoiceFilter {
 
     public static final float FMOD_MIN_DECIBEL = -80f;
 
-    public static final float RADIO_BANDPASS_LOW = 800f;
-    public static final float RADIO_BANDPASS_HIGH = 8000f;
+    // vectors are just a convenient way of storing two vars
+    // x: at max quality, y: at min quality
+    // in the future, these can be configurable by a server
+    public static final float RADIO_BANDPASS_LOW = 400f;
+    public static final float RADIO_BANDPASS_HIGH = 2400f;
+    public static final Vector2f RADIO_BANDPASS_LOW_V = new Vector2f(400f, 420f);
+    public static final Vector2f RADIO_BANDPASS_HIGH_V = new Vector2f(2400f, 800f);
 
-    public static final float RADIO_DISTORTION_AMOUNT = 0.6f;
+    public static final float RADIO_DISTORTION_AMOUNT = 1f;
+    public static final Vector2f RADIO_DISTORTION_AMOUNT_V = new Vector2f(0.3f, 1.0f);
 
-    public static final float RADIO_COMPRESSOR_RATIO = 2.5f;
-    public static final float RADIO_COMPRESSOR_THRESHOLD = 0f;
-    public static final float RADIO_COMPRESSOR_ATTACK = 1f;
+    public static final float RADIO_COMPRESSOR_RATIO = 25f;
+    public static final float RADIO_COMPRESSOR_THRESHOLD = 5f;
+    public static final float RADIO_COMPRESSOR_ATTACK = 5f;
     public static final float RADIO_COMPRESSOR_RELEASE = 5f;
+    public static final Vector2f RADIO_COMPRESSOR_THRESHOLD_V = new Vector2f(0f, -10f);
 
-    public static final float RADIO_NOISE_GAIN = -20f;
+    // the ratio between current distance and max distance at which the quality is max and min
+    public static final float RADIO_DIST_MAX_QUALITY = 0.6f;
+    public static final float RADIO_DIST_MIN_QUALITY = 0.9f;
 
     // fmod handles
     private final long distortionDsp;           // radio distortion DSP
     private final long voiceCompressorDsp;      // compressor DSP for loud distortion signals
     private final long bandpassFilterDsp;       // radio bandpass DSP
-    private final long noiseDsp;                // radio noise DSP
-    private final long noiseFaderDsp;           // radio noise compressor
+
+    private final BackgroundNoise noise;
 
     // voice filter parameters
     private float quality = 1f;
-    private float activeDuration = 0f;
-    private static final float FILTER_STARTUP_TIME = 40f; // determines the amount of time at startup where the radio quality is initially distorted and noisy
 
     public RadioVoiceFilter(long channel, VoiceFilterState state){
         super("RadioFilter", channel, state);
 
         // create and configure DSPs
         // radio bandpass
-        bandpassFilterDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_THREE_EQ.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWGAIN.ordinal(), FMOD_MIN_DECIBEL);
-        IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHGAIN.ordinal(), FMOD_MIN_DECIBEL);
-        IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_MIDGAIN.ordinal(), 0.0f);
-        IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWCROSSOVER.ordinal(), RADIO_BANDPASS_LOW);
-        IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHCROSSOVER.ordinal(), RADIO_BANDPASS_HIGH);
-        IVNative.FMOD_DSP_SetParameterInt(bandpassFilterDsp, FMOD_DSP_THREE_EQ_CROSSOVERSLOPE.ordinal(), 2);
+        bandpassFilterDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_THREE_EQ.ordinal());
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWGAIN.ordinal(), FMOD_MIN_DECIBEL);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHGAIN.ordinal(), FMOD_MIN_DECIBEL);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_MIDGAIN.ordinal(), 0.0f);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWCROSSOVER.ordinal(), 420);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHCROSSOVER.ordinal(), 420);
+        javafmodJNI.FMOD_DSP_SetParameterInt(bandpassFilterDsp, FMOD_DSP_THREE_EQ_CROSSOVERSLOPE.ordinal(), 2);
 
         // distortion
-        distortionDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_DISTORTION.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(distortionDsp, FMOD_DSP_DISTORTION_LEVEL.ordinal(), RADIO_DISTORTION_AMOUNT);
+        distortionDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_DISTORTION.ordinal());
+        javafmodJNI.FMOD_DSP_SetParameterFloat(distortionDsp, FMOD_DSP_DISTORTION_LEVEL.ordinal(), RADIO_DISTORTION_AMOUNT);
 
         // compressor
-        voiceCompressorDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_COMPRESSOR.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), RADIO_COMPRESSOR_RATIO);
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), RADIO_COMPRESSOR_THRESHOLD);
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_ATTACK.ordinal(), RADIO_COMPRESSOR_ATTACK);
+        voiceCompressorDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_COMPRESSOR.ordinal());
+        javafmodJNI.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), RADIO_COMPRESSOR_RATIO);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), RADIO_COMPRESSOR_THRESHOLD);
+        javafmodJNI.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_ATTACK.ordinal(), RADIO_COMPRESSOR_ATTACK);
 
         // noise
-        noiseDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_OSCILLATOR.ordinal());
-        IVNative.FMOD_DSP_SetParameterInt(noiseDsp, FMOD_DSP_OSCILLATOR_TYPE.ordinal(), 5); // noise
-
-        // noise compressor
-        noiseFaderDsp = IVNative.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_FADER.ordinal());
-        IVNative.FMOD_DSP_SetParameterFloat(noiseFaderDsp, FMOD_DSP_FADER_GAIN.ordinal(), RADIO_NOISE_GAIN);
+        noise = new BackgroundNoise();
     }
 
     @Override
     public void onSetActive(boolean active) {
-        IVNative.FMOD_DSP_SetActive(noiseDsp, active);
-        IVNative.FMOD_DSP_SetActive(noiseFaderDsp, active);
+        // this weird ass code is needed because the zomboid fmod JNI is half-baked and only the core functionality is properly implemented
+        // because of this, any fmod function requiring a bool does not take a bool, but a bool memory address
+        // obviously, I cannot provide a boolean memory address due to java being what it is, but fortunately
+        // c++ evaluates any valid address in memory as true and with zero being false, and so here we are
+        // its wack, but it works
+        long a = active ? distortionDsp : 0L;
+        long nota = active ? 0L : distortionDsp;
 
-        IVNative.FMOD_DSP_SetBypass(distortionDsp, !active);
-        IVNative.FMOD_DSP_SetBypass(voiceCompressorDsp, !active);
-        IVNative.FMOD_DSP_SetBypass(bandpassFilterDsp, !active);
+        noise.setPaused(!active);
 
-        // reset radio startup time
-        if(active){
-            activeDuration = 0f;
-        }
+        javafmodJNI.FMOD_DSP_SetBypass(distortionDsp, nota);
+        javafmodJNI.FMOD_DSP_SetBypass(voiceCompressorDsp, nota);
+        javafmodJNI.FMOD_DSP_SetBypass(bandpassFilterDsp, nota);
+
+        // reset radio quality
+        quality = 1f;
     }
 
     @Override
     public void build(){
         // build dsp graph
         // [OUT]<--[radio]<--[compressor]<--[distortion]<--[IN]
-        //                              ^--[noise compressor]<--[noise]
-        IVNative.FMOD_ChannelGroup_AddDSP(channel, 1, distortionDsp);
-        IVNative.FMOD_ChannelGroup_AddDSP(channel, 1, voiceCompressorDsp);
-        IVNative.FMOD_ChannelGroup_AddDSP(channel, 1, bandpassFilterDsp);
-
-        IVNative.FMOD_DSP_AddInput(bandpassFilterDsp, noiseFaderDsp);
-        IVNative.FMOD_DSP_AddInput(noiseFaderDsp, noiseDsp);
+        javafmodJNI.FMOD_ChannelGroup_AddDSP(channel, 1, distortionDsp);
+        javafmodJNI.FMOD_ChannelGroup_AddDSP(channel, 1, voiceCompressorDsp);
+        javafmodJNI.FMOD_ChannelGroup_AddDSP(channel, 1, bandpassFilterDsp);
     }
 
     @Override
@@ -107,14 +113,14 @@ public class RadioVoiceFilter extends VoiceFilter {
     public void updateFilter() {
         float newQuality = quality;
 
-        // TODO update radio quality based on distance
-
-        // update startup quality
-        activeDuration+=1f;
-        float startupDelta = activeDuration / FILTER_STARTUP_TIME;
-
-        if(startupDelta < 1f){
-            newQuality = 0.5f;
+        // as the radio approaches its maximum range, quality begins to drop sharply after passing a distance threshold
+        if(state.radioData != null){
+            if(state.radioData.lastReceiveDistance > RADIO_DIST_MAX_QUALITY){
+                float a = state.radioData.lastReceiveDistance / state.radioData.distance;
+                float b = map(0f, 1f, RADIO_DIST_MAX_QUALITY, RADIO_DIST_MIN_QUALITY, a);
+                float distMod = 1f-b;
+                newQuality *= distMod;
+            }
         }
 
         // only update quality when needed
@@ -127,18 +133,71 @@ public class RadioVoiceFilter extends VoiceFilter {
         this.quality = quality;
 
         // bandpass quality - worse signal quality means signal information is lost (narrower bands of info)
-        //IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWCROSSOVER.ordinal(), map(800.0f, 400.0f,quality)); // default
-        //IVNative.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHCROSSOVER.ordinal(), map(800.0f, 2000.0f,quality)); // default
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWCROSSOVER.ordinal(),
+                map(RADIO_BANDPASS_LOW_V.y, RADIO_BANDPASS_LOW_V.x, quality));
+        javafmodJNI.FMOD_DSP_SetParameterFloat(bandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHCROSSOVER.ordinal(),
+                map(RADIO_BANDPASS_HIGH_V.y, RADIO_BANDPASS_HIGH_V.x, quality));
 
         // distortion - the lower the quality, the more distorted the signal should be
-        IVNative.FMOD_DSP_SetParameterFloat(distortionDsp, FMOD_DSP_DISTORTION_LEVEL.ordinal(), map(1.0f, 0.5f, quality));
+        javafmodJNI.FMOD_DSP_SetParameterFloat(distortionDsp, FMOD_DSP_DISTORTION_LEVEL.ordinal(),
+                map(RADIO_DISTORTION_AMOUNT_V.y, RADIO_DISTORTION_AMOUNT_V.x, quality));
 
         // voice compression - at lower quality, the signal will be weaker, more compressed and harder to hear
-        //IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), 2.5f);
-        IVNative.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), map(-20.0f, -1.0f, quality));
+        javafmodJNI.FMOD_DSP_SetParameterFloat(voiceCompressorDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(),
+                map(RADIO_COMPRESSOR_THRESHOLD_V.y, RADIO_COMPRESSOR_THRESHOLD_V.x, quality));
+    }
 
-        // noise - the lower the quality, the noisier the signal should sound
-        //IVNative.FMOD_DSP_SetParameterFloat(noiseCompressorDsp, FMOD_DSP_COMPRESSOR_RATIO.ordinal(), 5.0f);
-        IVNative.FMOD_DSP_SetParameterFloat(noiseFaderDsp, FMOD_DSP_COMPRESSOR_THRESHOLD.ordinal(), map(-30.0f, -30.0f, quality));
+    // manages overall background noise for the radio voice filter
+    public static class BackgroundNoise{
+        public static final float RADIO_NOISE_GAIN = -40f;
+
+        private static long silenceSound; // handle for silence sound
+
+        private final long noiseChannel;
+        private final long noiseDsp;                // radio noise DSP
+        private final long noiseFaderDsp;           // radio noise compressor
+        private final long noiseBandpassFilterDsp;  // radio noise compressor
+
+        public BackgroundNoise(){
+            // sound of silence, only needed to load once
+            if(silenceSound == 0L) {
+                silenceSound = javafmodJNI.FMOD_System_CreateSound("test/silence.wav", FMODManager.FMOD_LOOP_NORMAL);
+                javafmodJNI.FMOD_Sound_SetMode(silenceSound, FMODManager.FMOD_LOOP_NORMAL);
+            }
+
+            // noise channel
+            noiseChannel = javafmodJNI.FMOD_System_PlaySound(silenceSound, 1); // start the sound, but make it paused
+            javafmodJNI.FMOD_Channel_SetChannelGroup(noiseChannel, IV.ivChannelGroup);
+
+            // noise
+            noiseDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_OSCILLATOR.ordinal());
+            javafmodJNI.FMOD_DSP_SetParameterInt(noiseDsp, FMOD_DSP_OSCILLATOR_TYPE.ordinal(), 5); // noise
+
+            // noise compressor
+            noiseFaderDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_FADER.ordinal());
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseFaderDsp, FMOD_DSP_FADER_GAIN.ordinal(), RADIO_NOISE_GAIN);
+
+            // noise bandpass
+            noiseBandpassFilterDsp = javafmodJNI.FMOD_System_CreateDSPByType(FMOD_DSP_TYPE_THREE_EQ.ordinal());
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWGAIN.ordinal(), FMOD_MIN_DECIBEL);
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHGAIN.ordinal(), FMOD_MIN_DECIBEL);
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_MIDGAIN.ordinal(), 0.0f);
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_LOWCROSSOVER.ordinal(), RADIO_BANDPASS_LOW);
+            javafmodJNI.FMOD_DSP_SetParameterFloat(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_HIGHCROSSOVER.ordinal(), RADIO_BANDPASS_HIGH);
+            javafmodJNI.FMOD_DSP_SetParameterInt(noiseBandpassFilterDsp, FMOD_DSP_THREE_EQ_CROSSOVERSLOPE.ordinal(), 2);
+
+            build();
+        }
+
+        private void build(){
+            // [OUT]<--[radio]<--[fader]<--[noise]<--[silence loop]
+            javafmodJNI.FMOD_Channel_AddDSP(noiseChannel, 1, noiseDsp);
+            javafmodJNI.FMOD_Channel_AddDSP(noiseChannel, 1, noiseFaderDsp);
+            javafmodJNI.FMOD_Channel_AddDSP(noiseChannel, 1, noiseBandpassFilterDsp);
+        }
+
+        public void setPaused(boolean paused){
+            javafmodJNI.FMOD_Channel_SetPaused(noiseChannel, paused ? 1L : 0L);
+        }
     }
 }
